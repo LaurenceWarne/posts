@@ -1,0 +1,43 @@
+#+TITLE: A Circle Of Coins
+
+* Overview
+
+  We can model a board state with \( n \) coins as an element of \( \mathbb{F}_2[x] / (x^n - 1) \). Flipping the ith sequence of \( k \) coins on a board state is equivalent to adding \( x^i(x^{k - 1} + x^{k - 2} + ... + 1) \) to the board state.
+
+* Lemma 1
+
+*\( t(x) \) is a solution iff it has \( g(x) = gcd(x^{k - 1} + x^{k - 2} + ... + 1, \ x^n - 1) \) (in \( \mathbb{F}_2[x] \)) as a factor*
+
+*Proof*: Suppose some configuration \( t(x) \in \mathbb{F}_2[x] / (x^n - 1) \) is a solution, ie there exists some \( v(x) \in \mathbb{F}_2[x] / (x^n - 1) \) such that:
+
+\[
+v(x)(x^{k - 1} + x^{k - 2} + ... + 1) + t(x)          \equiv 0 \mod{x^n - 1}
+\]
+
+Iff there exists \( k(x) \in \mathbb{F}_2[x] \) such that:
+
+\begin{align}
+v(x)(x^{k - 1} + x^{k - 2} + ... + 1)                   &= t(x) + k(x)(x^n - 1) \\
+v(x)(x^{k - 1} + x^{k - 2} + ... + 1) + k(x)(x^n - 1) &= t(x) \\
+g(x) \left[\frac{v(x)f(x)}{g(x)} + \frac{k(x)(x^n - 1)}{g(x)}\right] &= t(x)
+\end{align}
+
+Hence if t(x) is a solution it must have \( g(x) = gcd(x^{k - 1} + x^{k - 2} + ... + 1, \ x^n - 1) \) as a factor.
+
+We now show the backward case, ie if \( t(x) \) has \( g(x) \) as a factor then it is a solution. First let \( t(x) = t'(x)g(x) \). Now, since \( \mathbb{F}_2[x] \) is a Eucliddean domain, we can use Bezout's identity to get:
+
+\[
+a(x)(x^{k - 1} + x^{k - 2} + ... + 1) + b(x)(x^n - 1) = g(x)
+\]
+
+For some \( a(x), b(x) \in \mathbb{F}_2[x] \). Now multiplying throught by \( t'(x) \):
+
+\[ a(x)t'(x)(x^{k - 1} + x^{k - 2} + ... + 1) + b(x)t'(x)(x^n - 1) = g(x) \]
+
+Which satisfies (1) with \( v(x) = a(x)t'(x) \) and \( k(x) = b(x)t'(x) \).
+
+* Solution
+
+The problem thus then reduces to finding \( |g(x)\mathbb{F}_2[x] / (x^n - 1)| \) for a given \( n, k \). First of all, we have the factorisation:
+
+\[ x^n - 1 = (x - 1)(x^{n - 1} + x^{n - 2} + ... + 1) = \prod_{0 \le k < n}(x - \zeta_n^k) \]

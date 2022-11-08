@@ -1,0 +1,38 @@
+#+TITLE: title
+#+STARTUP: showall
+#+STARTUP: hidestars
+#+OPTIONS: H:2 num:nil tags:t toc:nil timestamps:t
+#+LAYOUT: post
+#+AUTHOR: Laurence Warne
+#+DATE: 2021-07-30 Fri 19:48
+#+DESCRIPTION: 
+#+CATEGORIES: my-category
+#+TAGS: my-tag
+
+* Question
+
+It's well known that given some sequence points of \( n \) points \( (x_i, y_i) \) with \( x_i \) distinct, that there exists a unique polynomial \( P \) of degree \( d < n \) such that for all \( i \), \( P(x_i) = y_i \), the *Lagrange Interpolating Polynomial*.
+
+If all \( x_i, y_i \) are integers, we can glean from the [[https://en.wikipedia.org/wiki/Lagrange_polynomial][Lagrange Interpolation Formula]] that it is guaranteed that \( P(X) \in \mathbb{Q}[X] \).  But does there exist a polynomial \( F(X) \) of higher degree satisfying the same property (\( F(x_i) = y_i \)) such that its coefficients are all integers?
+
+* Solution
+
+Strangely enough there exists no such polynomial if \( P \) has some non integer coefficient.  Proof is thanks to [[https://mathoverflow.net/questions/169083/lagrange-interpolation-and-integer-polynomials][this]] mathoverflow answer:
+
+First define \( D(X) \in \mathbb{Z}[X] \) as \( D(X) =  \prod (X - x_i) \), ie the monic polynomial of degree \( n \) whose roots are the \( x \) coordinates of our points.
+
+Next, suppose \( F(X) \) has coefficients all integers.  Since \( D(X) \) is monic we can write:
+
+\[
+F(X) = D(X)Q(X) + R(X)
+\]
+
+Where \( Q(X), R(X) \in \mathbb{Z}[X] \), and also \( deg(R(X)) < deg(D(X)) \).
+
+Now we must have \( F(x_i) = R(x_i) \), but this implies that \( R(X) \) is the Lagrange interpolating polynomial since it has degree less than \( n \) and satisfies \( R(x_i) = P(x_i) \) for all \( i \).  Thus we can re-write:
+
+\[
+P(X) = F(X) - D(X)Q(X)
+\]
+
+Which implies that \( P(X) \in \mathbb{Z}[X] \) since that latter set is closed under addition and multiplication.

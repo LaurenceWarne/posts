@@ -1,0 +1,39 @@
+#+TITLE: Row-Spanning for ImageMagick montage, Sort of...
+#+AUTHOR: Laurence Warne
+LAYOUT: post
+#+DESCRIPTION: ImageMagick montage
+#+CATEGORIES: programming
+
+* Montage
+
+ImageMagick ships the ~montage~ command as a way of creating *composite* images.  For example (stolen from their site):
+
+[[https://imagemagick.org/image/frame.jpg]]
+
+For [[https://github.com/LaurenceWarne/libro-finito/][libro-finito]], I'm interested in stitching several images together on a grid to try and replicate something like the image  Goodreads' year in books:
+
+[[https://inti-revista.org/img/10cc471f86b043291bdecc2996dc2254.jpg]]
+
+Essentially books tiled together with some appearing larger according to some heuristic (rating would be a good choice!).
+
+* Let's Start 🔨
+
+Given some images, if we want three images per row, something like:
+
+#+begin_src bash
+montage -geometry +0+0 starship-troopers.jpeg a-spell-for-a-chameleon-l.jpeg the-caves-of-steel.jpeg the-count-of-monte-cristo.jpeg a-wizard-of-earthsea.jpeg tmp.jpeg
+#+end_src
+
+Gives us:
+
+[[https://user-images.githubusercontent.com/17688577/140427293-5f587a19-5afb-47e6-aabe-d13e098249bc.jpeg]]
+
+ImageMagick has done its best to set the distance between images as zero, but this appears to have lead to inconsitency of column sizes.  Generally different sized images aren't going to work too nicely with one another.
+
+In the example above I've made it so that larger images are 4x the size of the smaller ones (ie 2x width and 2x height).  A "nice" tiling is possible if we make all of the images the same size... by splitting up the larger images into quarters.
+
+We split larger images into four smaller ones, taking care that we always align the bottom two images on the same columns below the top two images.  I've offloaded this tiling specification of our "split" images to a [[https://github.com/LaurenceWarne/libro-finito/blob/master/bin/montage.py][script]].
+
+But does this work?  Yes!
+
+[[https://raw.githubusercontent.com/LaurenceWarne/libro-finito/26e0044595fa933ecade67fce2add7cf1ec9c374/bin/montage.png]]

@@ -1,0 +1,120 @@
+#+TITLE: Text Wrap Hacks for Markdown
+#+LAYOUT: post
+#+DESCRIPTION: textwrap for markdown
+#+CATEGORIES: programming python
+#+AUTHOR: Laurence Warne
+#+DATE: 2022-06-18
+
+* The ~textwrap~ Module
+
+The Python standard library ships a neat little module for line wrapping text:
+
+#+begin_src python
+>>> import textwrap
+>>> textwrap.wrap("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+['Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do',
+ 'eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad',
+ 'minim veniam, quis nostrud exercitation ullamco laboris nisi ut',
+ 'aliquip ex ea commodo consequat. Duis aute irure dolor in',
+ 'reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla',
+ 'pariatur. Excepteur sint occaecat cupidatat non proident, sunt in',
+ 'culpa qui officia deserunt mollit anim id est laborum.']
+#+end_src
+
+And it's pretty extensible too, you can subclass ~textwrap.TextWrapper~ to control how words are split amongst [[https://docs.python.org/3/library/textwrap.html][other things]].
+
+* Hacking: Markdown
+
+This is nice and all, but what if I was wrapping some kind of markdown, specifically [[https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax][Github Markdown]]?  The biggest problem here would be wrapping links, whose character length far exceeds the length of the link description (which would be rendered):
+
+#+begin_src python
+>>> import textwrap
+>>> textwrap.wrap("`avy` is a GNU Emacs package for jumping to visible text using a char-based decision tree.  See also [ace-jump-mode](https://github.com/winterTTr/ace-jump-mode) and [vim-easymotion](https://github.com/Lokaltog/vim-easymotion) - `avy` uses the same idea.")
+['`avy` is a GNU Emacs package for jumping to visible text using a',
+ 'char-based decision tree.  See also',
+ '[ace-jump-mode](https://github.com/winterTTr/ace-jump-mode) and',
+ '[vim-easymotion](https://github.com/Lokaltog/vim-easymotion) - `avy`',
+ 'uses the same idea.']
+#+end_src
+
+But if we were to use this, it would be rendered as:
+
+#+begin_src
+`avy` is a GNU Emacs package for jumping to visible text using a
+char-based decision tree.  See also
+ace-jump-mode and
+vim-easymotion - `avy`
+uses the same idea.
+#+end_src
+
+Essentially, we want the length of Github links to be taken from the length of their descriptions alone.  It isn't immediately clear how this can be achieved looking at ~textwrap.TextWrapper~, but digging a little deeper in the ~textwrap~ module source code we see:
+
+#+begin_src python
+while chunks:
+    l = len(chunks[-1])
+
+    # Can at least squeeze this chunk onto the current line.
+    if cur_len + l <= width:
+        cur_line.append(chunks.pop())
+        cur_len += l
+
+    # Nope, this line is full.
+    else:
+        break
+#+end_src
+
+And further, ~chunks~ is set from a ~TextWrapper._split~ call.  This suggests if we create our own ~TextWrapper~ subclass and identify links in our ~_split~ method, we can set the length by somehow jumbling link strings so they return the length of their description rather than their true length on a ~len~ call.  We can do this by subclassing ~str~:
+
+#+begin_src python
+import re
+from textwrap import TextWrapper
+
+
+class MarkdownLink(str):
+    def __new__(cls, url, description):
+        obj = str.__new__(cls, f"[{description}]({url})")
+        obj.url = url
+        obj.description = description
+        return obj
+
+    def __len__(self):
+        return len(self.description)
+
+
+class MarkdownTextWrapper(TextWrapper):
+    """A TextWrapper which handles markdown links."""
+
+    LINK_REGEX = re.compile(r"(\[.*?\]\(\S+\))")
+    LINK_PARTS_REGEX = re.compile(r"^\[(.*?)\]\((\S+)\)$")
+
+    def _split(self, text):
+        split = re.split(self.LINK_REGEX, text)
+        chunks: List[str] = []
+        for item in split:
+            match = re.match(self.LINK_PARTS_REGEX, item)
+            if match:
+                chunks.append(MarkdownLink(match.group(2), match.group(1)))
+            else:
+                chunks.extend(super()._split(item))
+        return chunks
+#+end_src
+
+Lets use it:
+
+#+begin_src python
+>>> import textwrap
+>>> textwrap.wrap("`avy` is a GNU Emacs package for jumping to visible text using a char-based decision tree.  See also [ace-jump-mode](https://github.com/winterTTr/ace-jump-mode) and [vim-easymotion](https://github.com/Lokaltog/vim-easymotion) - `avy` uses the same idea.")
+['`avy` is a GNU Emacs package for jumping to visible text using a char-based',
+ 'decision tree.  See also [ace-jump-mode](https://github.com/winterTTr/ace-jump-mode) and [vim-easymotion](https://github.com/Lokaltog/vim-easymotion) - `avy` uses the same',
+'idea.']
+#+end_src
+
+Which renders as:
+
+#+begin_src
+`avy` is a GNU Emacs package for jumping to visible text using a char-based
+decision tree.  See also ace-jump-mode and vim-easymotion - `avy` uses the same
+idea
+#+end_src
+
+Nice! 👌
