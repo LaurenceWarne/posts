@@ -3,7 +3,7 @@
 #+DESCRIPTION: A solution to the November 2022 IBM Ponder This
 #+CATEGORIES: maths programming
 #+AUTHOR: Laurence Warne
-#+DATE: 2022-09-16 Wed 10:18
+#+DATE: 2022-11-09 Wed 10:18
 
 * The Question
 

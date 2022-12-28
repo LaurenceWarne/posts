@@ -1,0 +1,93 @@
+#+TITLE: Exploring Proced
+#+LAYOUT: post
+#+DESCRIPTION: Exploring Proced
+#+CATEGORIES: emacs programming
+#+AUTHOR: Laurence Warne
+#+DATE: 2022-12-26 Mon 10:00
+
+I was searching in Github in vain for a tool which would I could use as a process monitor, until I found that a tool already exists, and is in fact already shipped with Emacs: ~proced.el~ (written by Roland Winkler).  To start, we can kick off a Proced buffer by ~M-x proced~, and by default we'll be greeted by something like:
+
+Within this buffer, we can perform many useful process management operations.  For example ~k~ or ~x~ allow us to send a signal to the process under point, ~f~ will allow us to filter processes (for example, ~user-running~ will only show processes owned by you which are running), ~F~ allows you to choose between a collection of preset and user-defined attributes to show for each process (called *formats*), and finally ~ENTER~ allows you to refine the current list of processes according to attribute of the process under point (see ~proced-grammar-alist~ for some more information on how this works - for example pressing ~ENTER~ on the memory column of a given process will change it so that only processes with memory ~>=~ to the given process will be shown).
+
+We can also mark/unmark processes using ~m~ and ~u~ respectively, another handy trick is ~P~ will mark a process and its parent process.
+
+By default, processes will by sorted by CPU usage, this can be changed using ~s~, followed by one of ~c~ to sort by CPU, ~m~ to sort by memory, ~p~ to sort by process ID, ~s~ to sort by start time, ~t~ to sort by time (= system time + user time), ~u~ to sort by user, and finally ~S~ will prompt you to choose a sort time based on all process attributes (even if they aren't present in the current format).
+
+* Customisation
+
+Off the bat, by default the Proced buffer will *not* update automatically.  This can be manually invoked via ~g~, but to emulate something similar to ~top~ / ~htop~ behaviour we can set:
+
+#+begin_src elisp
+(setq-default proced-auto-update-flag t)
+(setq-default proced-auto-update-interval 1)
+#+end_src
+
+I'm also not a fan of the default formats, but its easy to define one yourself and set this as the default:
+
+#+begin_src elisp
+(add-to-list
+ 'proced-format-alist
+ '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm)))
+(setq-default proced-format 'custom)
+#+end_src
+The ~car~ of the value you're adding is the name of the new format, and the other symbols are values which appear in ~list-system-processes~ (for more information see ~proced-format-alist~).  ~list-system-processes~ also gives a nice rundown on the meaning of each attribute.
+
+~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second. ~setq-default~ is required here since these two variables are defined to be buffer local (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).
+
+Something else you may notice is that moving down a row also sets the column you're in to ~args~, personally I find this annoying, but you can turn this off:
+
+#+begin_src elisp
+(setq-default proced-goal-attribute nil)
+#+end_src
+
+The final cherry on top is that from Emacs 29 onwards, you can enable colouring for various attributes:
+
+#+begin_src elisp
+(setq proced-enable-color-flag t)
+#+end_src
+
+Which, using our new default format, leaves us with:
+
+
+Full customisation:
+#+begin_src elisp
+(use-package proced
+  :ensure nil
+  :commands proced
+  :bind (("C-M-p" . proced))
+  :config
+  (setq-default proced-auto-update-flag t)
+  (setq-default proced-auto-update-interval 1)
+  (setq-default proced-goal-attribute nil) 
+  (setq proced-enable-color-flag t)
+  (add-to-list
+   'proced-format-alist
+   '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm)))
+  (setq-default proced-format 'custom))
+#+end_src
+
+* Rolling Your Own Formatting for Attributes
+
+~proced-grammar-alist~ opens the door for a lot of control over how attributes are shown in Proced buffers.  The documentation goes into a lot of detail, but I'll provide a quick example here to give an idea.
+
+Suppose our goal is to set the colour of Java executables in the ~args~ column to that strange orangey-brown colour that everyone seems to associate with Java.  We can start by first defining our format function:
+
+#+begin_src elisp
+(defun my-format-java-args (args)
+  (pcase-let* ((base (proced-format-args args))
+               (`(,exe . ,rest) (split-string args))
+               (exe-prop (if (string= exe "java")
+                             (propertize exe 'font-lock-face 'proced-executable)
+                           exe)))
+    (mapconcat #'identity (cons exe-prop rest) " ")))
+#+end_src
+
+Now, we just need to add tell ~proced-grammar-alist~ to use this function for the ~args~ attribute. 
+
+* Remote Systems
+
+Thanks to Michael Albinus, from Emacs 29 onwards invoking ~proced~ when ~deafult-directory~ is remote (for example, your current buffer points to a remote file) will prompt Proced to show processes from the remote system instead of your local machine, which can make ~proced~ a lot more useful when working with ~tramp~.
+
+* See Also
+- https://www.masteringemacs.org/article/displaying-interacting-processes-proced
+- https://emacsredux.com/blog/2013/05/02/manage-processes-with-proced/
