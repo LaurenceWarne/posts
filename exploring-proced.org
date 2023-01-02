@@ -7,6 +7,8 @@
 
 I was searching in Github in vain for a tool which would I could use as a process monitor, until I found that a tool already exists, and is in fact already shipped with Emacs: ~proced.el~ (written by Roland Winkler).  To start, we can kick off a Proced buffer by ~M-x proced~, and by default we'll be greeted by something like:
 
+[[https://user-images.githubusercontent.com/17688577/210267266-d63a08b6-001d-4ebe-9680-9572034c288b.png]]
+
 Within this buffer, we can perform many useful process management operations.  For example ~k~ or ~x~ allow us to send a signal to the process under point, ~f~ will allow us to filter processes (for example, ~user-running~ will only show processes owned by you which are running), ~F~ allows you to choose between a collection of preset and user-defined attributes to show for each process (called *formats*), and finally ~ENTER~ allows you to refine the current list of processes according to attribute of the process under point (see ~proced-grammar-alist~ for some more information on how this works - for example pressing ~ENTER~ on the memory column of a given process will change it so that only processes with memory ~>=~ to the given process will be shown).
 
 We can also mark/unmark processes using ~m~ and ~u~ respectively, another handy trick is ~P~ will mark a process and its parent process.
@@ -15,7 +17,7 @@ By default, processes will by sorted by CPU usage, this can be changed using ~s~
 
 * Customisation
 
-Off the bat, by default the Proced buffer will *not* update automatically.  This can be manually invoked via ~g~, but to emulate something similar to ~top~ / ~htop~ behaviour we can set:
+Off the bat, by default the Proced buffer will *not* update automatically.  An update can be manually triggered via ~g~, but to emulate something similar to ~top~ / ~htop~ behaviour we can set:
 
 #+begin_src elisp
 (setq-default proced-auto-update-flag t)
@@ -48,6 +50,7 @@ The final cherry on top is that from Emacs 29 onwards, you can enable colouring 
 
 Which, using our new default format, leaves us with:
 
+[[https://user-images.githubusercontent.com/17688577/210267583-fde17782-1eb3-4ee4-bdab-d8a53ef92624.png]]
 
 Full customisation:
 #+begin_src elisp
@@ -76,13 +79,14 @@ Suppose our goal is to set the colour of Java executables in the ~args~ column t
 (defun my-format-java-args (args)
   (pcase-let* ((base (proced-format-args args))
                (`(,exe . ,rest) (split-string args))
-               (exe-prop (if (string= exe "java")
-                             (propertize exe 'font-lock-face 'proced-executable)
-                           exe)))
+               (exe-prop
+                (if (string= exe "java")
+                    (propertize exe 'font-lock-face '((t (:foreground "#f89820"))))
+                  exe)))
     (mapconcat #'identity (cons exe-prop rest) " ")))
 #+end_src
 
-Now, we just need to add tell ~proced-grammar-alist~ to use this function for the ~args~ attribute. 
+Now, we just need to tell ~proced-grammar-alist~ to use this function for the ~args~ attribute. 
 
 * Remote Systems
 
