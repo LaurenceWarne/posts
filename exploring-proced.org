@@ -24,7 +24,7 @@ Off the bat, by default the Proced buffer will *not* update automatically.  An u
 (setq-default proced-auto-update-interval 1)
 #+end_src
 
-I'm also not a fan of the default formats, but its easy to define one yourself and set this as the default:
+We need ~setq-default~ rather than ~setq~ since ~proced-auto-update-flag~ and ~proced-auto-update-interval~ are [[https://stackoverflow.com/questions/18172728/the-difference-between-setq-and-setq-default-in-emacs-lisp][buffer-local variables]] (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).  ~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second. .  I'm also not a fan of the default formats, but it's easy to define one yourself and set this as the default:
 
 #+begin_src elisp
 (add-to-list
@@ -32,9 +32,7 @@ I'm also not a fan of the default formats, but its easy to define one yourself a
  '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm)))
 (setq-default proced-format 'custom)
 #+end_src
-The ~car~ of the value you're adding is the name of the new format, and the other symbols are values which appear in ~list-system-processes~ (for more information see ~proced-format-alist~).  ~list-system-processes~ also gives a nice rundown on the meaning of each attribute.
-
-~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second. ~setq-default~ is required here since these two variables are defined to be buffer local (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).
+The ~car~ of the value you're adding is the name of the new format, and the other symbols are values which appear in ~list-system-processes~ (for more information see ~proced-format-alist~).  ~list-system-processes~ also gives a nice rundown on the meaning of each attribute.  You can also add your own custom attributes, here's a great example I found in [[https://github.com/legoscia/dotemacs/blob/master/dotemacs.org#proced-erlang-magic][legoscia's Emacs config]].
 
 Something else you may notice is that moving down a row also sets the column you're in to ~args~, personally I find this annoying, but you can turn this off:
 
@@ -86,7 +84,19 @@ Suppose our goal is to set the colour of Java executables in the ~args~ column t
     (mapconcat #'identity (cons exe-prop rest) " ")))
 #+end_src
 
-Now, we just need to tell ~proced-grammar-alist~ to use this function for the ~args~ attribute. 
+Now, we just need to tell ~proced-grammar-alist~ to use this function for the ~args~ attribute:
+
+#+begin_src elisp
+(setf (alist-get 'args proced-grammar-alist)
+      '("Args"               ; name of the column
+        my-format-java-args  ; format function
+        left                 ; alignment within column
+        proced-string-lessp  ; defines the sort method (ascending)
+        nil                  ; non-nil reverses sort order
+       (args pid)            ; sort scheme
+       (nil t nil)))         ; refiner for custom refinement logic - see proced-refine
+#+end_src
+
 
 * Remote Systems
 
