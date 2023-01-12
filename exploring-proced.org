@@ -24,7 +24,7 @@ Off the bat, by default the Proced buffer will *not* update automatically.  An u
 (setq-default proced-auto-update-interval 1)
 #+end_src
 
-We need ~setq-default~ rather than ~setq~ since ~proced-auto-update-flag~ and ~proced-auto-update-interval~ are [[https://stackoverflow.com/questions/18172728/the-difference-between-setq-and-setq-default-in-emacs-lisp][buffer-local variables]] (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).  ~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second. .  I'm also not a fan of the default formats, but it's easy to define one yourself and set this as the default:
+We need ~setq-default~ rather than ~setq~ since ~proced-auto-update-flag~ and ~proced-auto-update-interval~ are [[https://stackoverflow.com/questions/18172728/the-difference-between-setq-and-setq-default-in-emacs-lisp][buffer-local variables]] (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).  ~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second.  I'm also not a fan of the default formats, but it's easy to define one yourself and set this as the default:
 
 #+begin_src elisp
 (add-to-list
@@ -48,7 +48,7 @@ The final cherry on top is that from Emacs 29 onwards, you can enable colouring 
 
 Which, using our new default format, leaves us with:
 
-[[https://user-images.githubusercontent.com/17688577/210267583-fde17782-1eb3-4ee4-bdab-d8a53ef92624.png]]
+[[https://user-images.githubusercontent.com/17688577/212047844-7531d1be-6920-45ef-b7b5-6b3cdb03c7a2.png]]
 
 Full customisation:
 #+begin_src elisp
@@ -76,7 +76,7 @@ Suppose our goal is to set the colour of Java executables in the ~args~ column t
 #+begin_src elisp
 (defun my-format-java-args (args)
   (pcase-let* ((base (proced-format-args args))
-               (`(,exe . ,rest) (split-string args))
+               (`(,exe . ,rest) (split-string base))
                (exe-prop
                 (if (string= exe "java")
                     (propertize exe 'font-lock-face '((t (:foreground "#f89820"))))
@@ -97,10 +97,13 @@ Now, we just need to tell ~proced-grammar-alist~ to use this function for the ~a
        (nil t nil)))         ; refiner for custom refinement logic - see proced-refine
 #+end_src
 
+And you should see the results straight away:
+
+[[https://user-images.githubusercontent.com/17688577/212048912-991ba757-f3e3-4abb-b386-0b90fc5dc901.png]] 
 
 * Remote Systems
 
-Thanks to Michael Albinus, from Emacs 29 onwards invoking ~proced~ when ~deafult-directory~ is remote (for example, your current buffer points to a remote file) will prompt Proced to show processes from the remote system instead of your local machine, which can make ~proced~ a lot more useful when working with ~tramp~.
+Thanks to Michael Albinus, from Emacs 29 onwards invoking ~proced~ when ~default-directory~ is remote (for example, your current buffer points to a remote file) will prompt Proced to show processes from the remote system instead of your local machine, which can make ~proced~ a lot more useful when working with ~tramp~.
 
 * See Also
 - https://www.masteringemacs.org/article/displaying-interacting-processes-proced
