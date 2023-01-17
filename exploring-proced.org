@@ -21,10 +21,10 @@ Off the bat, by default the Proced buffer will *not* update automatically.  An u
 
 #+begin_src elisp
 (setq-default proced-auto-update-flag t)
-(setq-default proced-auto-update-interval 1)
+(setq proced-auto-update-interval 1)
 #+end_src
 
-We need ~setq-default~ rather than ~setq~ since ~proced-auto-update-flag~ and ~proced-auto-update-interval~ are [[https://stackoverflow.com/questions/18172728/the-difference-between-setq-and-setq-default-in-emacs-lisp][buffer-local variables]] (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).  ~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second.  I'm also not a fan of the default formats, but it's easy to define one yourself and set this as the default:
+  ~proced-auto-update-flag~ enables auto updating the Proced buffer (by default) every five seconds, and we use ~proced-auto-update-interval~ to shorten this to every second.  We need ~setq-default~ for the first of these rather than ~setq~ since ~proced-auto-update-flag~ is a [[https://stackoverflow.com/questions/18172728/the-difference-between-setq-and-setq-default-in-emacs-lisp][buffer-local variable]] (we can make use of this by calling ~proced-toggle-auto-update~ within a Proced buffer which will toggle auto-update without changing the global value of ~proced-auto-update-flag~).  I'm also not a fan of the default formats, but it's easy to define one yourself and set this as the default:
 
 #+begin_src elisp
 (add-to-list
@@ -37,7 +37,7 @@ The ~car~ of the value you're adding is the name of the new format, and the othe
 Something else you may notice is that moving down a row also sets the column you're in to ~args~, personally I find this annoying, but you can turn this off:
 
 #+begin_src elisp
-(setq-default proced-goal-attribute nil)
+(setq proced-goal-attribute nil)
 #+end_src
 
 The final cherry on top is that from Emacs 29 onwards, you can enable colouring for various attributes:
@@ -58,9 +58,9 @@ Full customisation:
   :bind (("C-M-p" . proced))
   :config
   (setq-default proced-auto-update-flag t)
-  (setq-default proced-auto-update-interval 1)
-  (setq-default proced-goal-attribute nil) 
-  (setq proced-enable-color-flag t)
+  (setq proced-auto-update-interval 1
+        proced-goal-attribute nil
+        proced-enable-color-flag t)
   (add-to-list
    'proced-format-alist
    '(custom user pid ppid sess tree pcpu pmem rss start time state (args comm)))
@@ -103,7 +103,7 @@ And you should see the results straight away:
 
 * Remote Systems
 
-Thanks to Michael Albinus, from Emacs 29 onwards invoking ~proced~ when ~default-directory~ is remote (for example, your current buffer points to a remote file) will prompt Proced to show processes from the remote system instead of your local machine, which can make ~proced~ a lot more useful when working with ~tramp~.
+Thanks to Michael Albinus, from Emacs 29 onwards invoking ~proced~ when ~default-directory~ is remote (for example, your current buffer points to a remote file) and ~proced-show-remote-processes~ is non-nil, will prompt Proced to show processes from the remote system instead of your local machine, which can make ~proced~ a lot more useful when working with ~tramp~.
 
 * See Also
 - https://www.masteringemacs.org/article/displaying-interacting-processes-proced
