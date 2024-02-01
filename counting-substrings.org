@@ -1,0 +1,88 @@
+#+TITLE: Counting Substrings and the Goulden Jackson Cluster Method
+
+/A lot of this article is based on the brilliant [[https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimPDF/gj.pdf][paper]] by John Noonan and Doron Zeilberger./
+
+* Intro
+
+Suppose we want to find the number of strings of length \( n \) (sourced say from some given alphabet \( V \)), which don't contain a given string (or set of strings) as a substring.  Is there a fast way to do this?
+
+The most basic case is excluding a string of a single character, in which case there are \( n^{\|V\| - 1} \) total strings.  But past single character strings, reasoning becomes a bit more difficult.  It's always true (and we will show) that the total number of strings follows a linear recurrence and so calculating the first few results using DP and using Berlekamp Massey will give a fast way, though we will show a way to compute a generating function directly.
+
+* A Derivation
+
+Let's first define the weight \( W_R \) of some word \( w = w_1 \hdots w_n  \in V^* \) of length \( n \), which we will define using the set of variables \( x\left[w'\right] \) for some selection of \( w' \in V^* \) as follows:
+
+\[
+W_R(w) = \prod_{k = 1}^n \prod_{m = k}^{\min(k + R, n)} x\left[w_k \hdots w_m]
+\]
+
+Note some factors may appear more than once, for example:
+
+\[
+W_2(HELL) = x\left[H\right]x\left[E\right]x\left[L\right]^2x\left[HE\right]x\left[EL\right]x\left[LL\right]
+\]
+
+Now, we define the generating function over \( x[w] \) where \( w \) has length \( \le R \) as:
+
+\[
+\Phi_R = \sum_{w \in V^*} W_R(w)
+\]
+
+Our strategy will be to perform substitutions on \( \Phi_R \) in order to recover the generating functions we want.  For example the mapping:
+
+\begin{equation*}
+x[w] \mapsto \left\{
+    \begin{array}{ll}
+        x, & \text{if } w \text{ is a single character string}\\
+        0, & \text{if } w \text{ is a string we want to exclude}\\
+        1, & \text{otherwise}
+    \end{array}
+\end{equation*}
+
+Will give us the generating function \( \sum a_n x^n \) where \( a_n \) is the number of words of length \( n \) not containing a given set of words as a substring.
+
+
+** Computing \( \Phi_R \)
+
+Let's define:
+
+\[
+Suff(w) = \{ w' \in V^* : \text{w' ends in w} \}
+\]
+
+Now, all words in \( V^* \) must either be of length less than \( R \) or end in some string of length \( R \).  Define:
+
+\[
+\Phi_{R, w} = \sum_{w' \in Suff(w)} W_R(w')
+\]
+
+Then our generating function is the sum of \( \Phi_{R, w} \) for all words of length \( R \) plus the sum of \( W_R(w) \) for all words of length less than \( R \).  Next, we see that our set of \( \Phi_{R, w} \) form a set of simultaneous equations:
+
+\[
+ \Phi_{R, w_1 \hdots w_R} = W_R(w) + \left(\prod_{i \ge 1} x\left[w_i \hdots w_r \right] \right) \sum_{c \in V} \Phi_{R, cw_1 \hdots w_{R - 1}}
+\]
+
+Which says in essence, if a word \( w' \) ends in \( w \), then it must either be \( w \) itself, else we can drop the last character of \( w' \) and we are left another word with a suffix of length \( R \).  And so calculating \( \Phi_R \) reduces to solving these equations.
+
+** Example
+
+Consider the binary string of length \( n \) not containing the substring \( 111 \).  We see:
+
+\begin{align*}
+\Phi_{3, 000} &= x^3 + x \left(\Phi_{3, 100} + \Phi_{3, 000} \right)\\
+\Phi_{3, 001} &= x^3 + x \left(\Phi_{3, 100} + \Phi_{3, 000} \right)\\
+\Phi_{3, 010} &= x^3 + x \left(\Phi_{3, 101} + \Phi_{3, 001} \right)\\
+\Phi_{3, 011} &= x^3 + x \left(\Phi_{3, 101} + \Phi_{3, 001} \right)\\
+\Phi_{3, 100} &= x^3 + x \left(\Phi_{3, 110} + \Phi_{3, 010} \right)\\
+\Phi_{3, 101} &= x^3 + x \left(\Phi_{3, 110} + \Phi_{3, 010} \right)\\
+\Phi_{3, 110} &= x^3 + x \left(\Phi_{3, 111} + \Phi_{3, 011} \right)\\
+\Phi_{3, 111} &= x \left(\Phi_{3, 111} + \Phi_{3, 011} \right)\\
+\end{align*}
+
+Solving, we find that:
+
+
+
+
+* The Goulden Jackson Cluster Method
+
