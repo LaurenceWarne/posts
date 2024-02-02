@@ -4,7 +4,7 @@
 
 * Intro
 
-Suppose we want to find the number of strings of length \( n \) (sourced say from some given alphabet \( V \)), which don't contain a given string (or set of strings) as a substring.  Is there a fast way to do this?
+Suppose we want to find the number of strings of length \( n \) (sourced say from some given alphabet \( V \)), which don't contain any of a given set of strings \( B \) as a substring.  Is there a fast way to do this?
 
 The most basic case is excluding a string of a single character, in which case there are \( n^{\|V\| - 1} \) total strings.  But past single character strings, reasoning becomes a bit more difficult.  It's always true (and we will show) that the total number of strings follows a linear recurrence and so calculating the first few results using DP and using Berlekamp Massey will give a fast way, though we will show a way to compute a generating function directly.
 
@@ -30,16 +30,16 @@ Now, we define the generating function over \( x[w] \) where \( w \) has length 
 
 Our strategy will be to perform substitutions on \( \Phi_R \) in order to recover the generating functions we want.  For example the mapping:
 
-\begin{equation*}
+\begin{equation}
 x[w] \mapsto \left\{
     \begin{array}{ll}
         x, & \text{if } w \text{ is a single character string}\\
         0, & \text{if } w \text{ is a string we want to exclude}\\
         1, & \text{otherwise}
     \end{array}
-\end{equation*}
+\end{equation}
 
-Will give us the generating function \( \sum a_n x^n \) where \( a_n \) is the number of words of length \( n \) not containing a given set of words as a substring.
+Will give us the generating function \( \sum a_n x^n \) where \( a_n \) is the number of words of length \( n \) not containing a given set of words as a substring.  We'll generally denote this generating function by \( G(x) \).
 
 
 ** Computing \( \Phi_R \)
@@ -64,24 +64,39 @@ Then our generating function is the sum of \( \Phi_{R, w} \) for all words of le
 
 Which says in essence, if a word \( w' \) ends in \( w \), then it must either be \( w \) itself, else we can drop the last character of \( w' \) and we are left another word with a suffix of length \( R \).  And so calculating \( \Phi_R \) reduces to solving these equations.
 
+Note, making the substitution (1) prior to solving the system simplifies computing \( G(x) \).  We'll denote (1) applied to \( \Phi_{R, w} \) as \( \Phi_{R, w}(x) \).
+
 ** Example
 
-Consider the binary string of length \( n \) not containing the substring \( 111 \).  We see:
+Consider the binary string of length \( n \) not containing the substring \( 111 \).  We see (making our substitution ahead of time):
 
 \begin{align*}
-\Phi_{3, 000} &= x^3 + x \left(\Phi_{3, 100} + \Phi_{3, 000} \right)\\
-\Phi_{3, 001} &= x^3 + x \left(\Phi_{3, 100} + \Phi_{3, 000} \right)\\
-\Phi_{3, 010} &= x^3 + x \left(\Phi_{3, 101} + \Phi_{3, 001} \right)\\
-\Phi_{3, 011} &= x^3 + x \left(\Phi_{3, 101} + \Phi_{3, 001} \right)\\
-\Phi_{3, 100} &= x^3 + x \left(\Phi_{3, 110} + \Phi_{3, 010} \right)\\
-\Phi_{3, 101} &= x^3 + x \left(\Phi_{3, 110} + \Phi_{3, 010} \right)\\
-\Phi_{3, 110} &= x^3 + x \left(\Phi_{3, 111} + \Phi_{3, 011} \right)\\
-\Phi_{3, 111} &= x \left(\Phi_{3, 111} + \Phi_{3, 011} \right)\\
+\Phi_{3, 000}(x) &= x^3 + x \left(\Phi_{3, 100}(x) + \Phi_{3, 000}(x) \right)\\
+\Phi_{3, 001}(x) &= x^3 + x \left(\Phi_{3, 100}(x) + \Phi_{3, 000}(x) \right)\\
+\Phi_{3, 010}(x) &= x^3 + x \left(\Phi_{3, 101}(x) + \Phi_{3, 001}(x) \right)\\
+\Phi_{3, 011}(x) &= x^3 + x \left(\Phi_{3, 101}(x) + \Phi_{3, 001}(x) \right)\\
+\Phi_{3, 100}(x) &= x^3 + x \left(\Phi_{3, 110}(x) + \Phi_{3, 010}(x) \right)\\
+\Phi_{3, 101}(x) &= x^3 + x \left(\Phi_{3, 110}(x) + \Phi_{3, 010}(x) \right)\\
+\Phi_{3, 110}(x) &= x^3 + x \left(\Phi_{3, 111}(x) + \Phi_{3, 011}(x) \right)\\
+\Phi_{3, 111}(x) &= x \left(\Phi_{3, 111}(x) + \Phi_{3, 011}(x) \right)\\
 \end{align*}
 
 Solving, we find that:
 
+\begin{align*}
+\Phi_{3, 000}(x) &= \Phi_{3, 001}(x) = \Phi_{3, 010}(x) = \Phi_{3, 011}(x) = -\frac{x^5 + x^4 + x^3}{x^3 + x^2 + x - 1}\\
+\Phi_{3, 100}(x) &= \Phi_{3, 101}(x) = \Phi_{3, 110}(x) = -\frac{x^4 + x^3}{x^3 + x^2 + x - 1}\\
+\Phi_{3, 111}(x) &= 0
+\end{align*}
 
+Ands thus:
+
+\begin{align*}
+G(x) &= 1 + 2x + 4x^2 + \frac{4x^5 + 6x^4 + 7x^3}{1 - x^3 - x^2 - x}\\
+     &= \frac{x^2 + x + 1}{1 - x^3 - x^2 - x}\\
+\end{align*}
+
+AKA the (shifted) [[https://oeis.org/A000073][Tribonacci numbers]].
 
 
 * The Goulden Jackson Cluster Method
