@@ -1,4 +1,4 @@
-#+TITLE: Counting Substrings and the Goulden Jackson Cluster Method
+#+TITLE: Counting Substrings and the Goulden-Jackson Cluster Method
 
 /A lot of this article is based on the brilliant [[https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimPDF/gj.pdf][paper]] by John Noonan and Doron Zeilberger./
 
@@ -10,7 +10,7 @@ The most basic case is excluding a string of a single character, in which case t
 
 * A Derivation
 
-Let's first define the weight \( W_R \) of some word \( w = w_1 \hdots w_n  \in V^* \) of length \( n \), which we will define using the set of variables \( x\left[w'\right] \) for some selection of \( w' \in V^* \) as follows:
+Let's first define the weight \( W_R \) of some word \( w = w_1 \hdots w_n  \in V^* \) of length \( n \).  We will define it using the set of variables \( x\left[w'\right] \) for all \( w' \in V^* \) of length \( R \) or less as follows:
 
 \[
 W_R(w) = \prod_{k = 1}^n \prod_{m = k}^{\min(k + R, n)} x\left[w_k \hdots w_m]
@@ -33,8 +33,8 @@ Our strategy will be to perform substitutions on \( \Phi_R \) in order to recove
 \begin{equation}
 x[w] \mapsto \left\{
     \begin{array}{ll}
-        x, & \text{if } w \text{ is a single character string}\\
         0, & \text{if } w \text{ is a string we want to exclude}\\
+        x, & \text{if } w \text{ is a single character string}\\
         1, & \text{otherwise}
     \end{array}
 \end{equation}
@@ -98,6 +98,54 @@ G(x) &= 1 + 2x + 4x^2 + \frac{4x^5 + 6x^4 + 7x^3}{1 - x^3 - x^2 - x}\\
 
 AKA the (shifted) [[https://oeis.org/A000073][Tribonacci numbers]].
 
+* The Goulden-Jackson Cluster Method
 
-* The Goulden Jackson Cluster Method
+Using this method duplicates a lot of effort.  Note in our previous earlier example that \( \Phi_{3, 001}(x) = \Phi_{3, 000}(x) \), since the number of binary strings of a given length ending in both \( 001 \) and \( 000 \) must be the same.  We'll introduce the Goulden-Jackson Cluster method as a means of reducing our work.
+
+First of all, we'll define a new weight function in terms of a variable \( s \):
+
+\[
+Q(w) = s^{\text{length(w)}}
+\]
+
+And then the generating function:
+
+\[
+f_B(s) = \sum_{w \in L(B)} Q(w)
+\]
+
+Where \( L(B) \) is the set of all words in \( V^* \), not containing any word in \( B \) as a substring.  We now claim:
+
+\begin{align*}
+f_B(s) &= \sum_{w \in V^*} Q(w)0^{\text{no of factors of w belonging to } B}\\
+       &= \sum_{w \in V^*} Q(w)(1 - 1)^{\text{no of factors of w belonging to } B}\\
+       &= \sum_{w \in V^*} \sum_{S \subseteq B(w)} (-1)^{\left|S\right|}s^{\text{length}(w)}
+\end{align*}
+
+Where \( B(w) \) is the set of factors of \( w \) belonging to \( B \).  The second equality follows from the identity \( (1 + (-1))^{\left|A\right|} = \sum_{S \subseteq A}(-1)^{\left|S\right|} \) .
+
+So instead of counting over words in \( L(B) \), we may instead count over pairs \( (w, S) \), which we will call *marked words*.  An equivalent representation of the pair \( (w, S) \) is the n-tuple \( (w, [i_1, j_1], [i_2, j_2], \hdots [i_l, j_l] ) \) where \( w_{i_r} \hdots w_{i_j} \in B \ \forall r \) and \( j_1 < j_2 < \hdots < j_l \)So instead of counting over words in \( L(B) \), we may instead count over pairs \( (w, S) \), which we will call *marked words*.  We will denote the set of all marked words as \( M \).  An equivalent representation of the pair \( (w, S) \) is the n-tuple \( (w, [i_1, j_1], [i_2, j_2], \hdots [i_l, j_l] ) \) where \( w_{i_r} \hdots w_{i_j} \in B \ \forall r \) and \( j_1 < j_2 < \hdots < j_l \).  For example:
+
+\[
+(HELLO, \{HE, EL\}) = (HELLO, [1, 2], [3, 4])
+\]
+
+We'll also use the shorthand \( m_1m_2 \) for the concatenation of the marked words \( m_1 \) and \( m_2 \), which is defined how you would expect.
+
+** Clusters
+We say two factors \( [i, j], \ [i', j'] \) *overlap* if they share at least one character.
+
+Now, we'll define what we mean by *clusters*.  For a given nonempty \( m = (w_1 \hdots w_n, [i_1, j_1], [i_2, j_2], \hdots [i_l, j_l] ) \) exactly one of the following must be true:
+
+1. \( j_l < n \): in this case we will drop the last character, and be left with a new marked word \( (w_1 \hdots w_{n - 1}, [i_1, j_1], [i_2, j_2], \hdots [i_l, j_l] ) \).
+2. \( j_l = n \): in this case, let \( k \) be the smallest index such which results in a chain of overlapping factors from \( k \) to \( n \), e.g. \( [i_k, j_k] \) overlaps with \( [i_{k + 1}, j_{k + 1}] \) and so on.  Then we can decompose \( m \) into two words \( m_1 = (w_1 \hdots w_{i_k - 1}, [i_1, j_1], \hdots [i_{k - 1}, j_{k - 1}]) \) and \( m_2 = (w_{i_k} \hdots w_n, [i_k, j_k], \hdots [i_l, j_l]) \).
+
+What's special about \( m_2 \) is that all its letters are members of at least one marked factor, and \( [i_k, j_k], \hdots [i_l, j_l] \) for an overlapping chain.  We call such marked words *clusters*, and denote the set of all clusters as \( C \).
+
+Thus we must have that every \( m \in M \) either ends with a single character not part of a marked factor, or a cluster.  In other words:
+
+\[
+M = \{e\} \cup \{ mc : m \in M, \ c \in C \} \cup \{ mv : m \in M, \ v \in V \}
+\]
+
 
