@@ -1,6 +1,6 @@
-#+TITLE: Counting Substrings and the Goulden-Jackson Cluster Method
+#+TITLE: Counting Strings and the Goulden-Jackson Cluster Method
 #+LAYOUT: post
-#+DESCRIPTION: Counting Substrings and the Goulden-Jackson Cluster Method
+#+DESCRIPTION: Counting Strings and the Goulden-Jackson Cluster Method
 #+CATEGORIES: maths combinatorics
 #+AUTHOR: Laurence Warne
 #+DATE: 2024-02-04 Sun 19:00
@@ -39,7 +39,7 @@ x[w] \mapsto \left\{
         0, & \text{if } w \text{ is a string we want to exclude}\\
         x, & \text{if } w \text{ is a single character string}\\
         1, & \text{otherwise}
-    \end{array}
+    \end{array}\right.
 \end{equation}
 
 Will give us the generating function \( \sum a_n x^n \) where \( a_n \) is the number of words of length \( n \) not containing a given set of words as a substring.  We'll denote this generating function by \( G(x) \).
@@ -91,7 +91,7 @@ Solving, we find that:
 \Phi_{3, 111}(x) &= 0
 \end{align*}
 
-Ands thus:
+And thus:
 
 \begin{align*}
 G(x) &= 1 + 2x + 4x^2 + \frac{4x^5 + 6x^4 + 7x^3}{1 - x^3 - x^2 - x}\\
@@ -198,15 +198,38 @@ def goulden_jackson(bad_words, alphabet=string.ascii_uppercase):
                     eq += -s^(len(end_word) - len(sub))*gfvs[source_word]
         eqns.append(eq == 0)
 
-    CB = sum(eq.right() for eq in solve(eqns, *gfvs.values())[0])
+    soln = solve(eqns, *gfvs.values())
+    CB = sum(eq.right() for eq in (soln[0] if len(bad_words) > 1 else soln))
     G = 1 / (1 - len(alphabet)*s - CB)
     return G.numerator() / G.denominator()
 #+end_src
 
-Our overlap checking is not optimised, 
+Our overlap checking is not optimised, probably we can do better.
 
 * Examples
 
+** PGF for the First Occurrence of a Binary String
+
+For some binary string \( w = w_1 \dots w_l \), let \( G(x) = \sum_{n = 1} p_n x^n \) where \( p_n \) is defined as the probability that the first occurrence of the string \( w \) in a random infinite binary string starts at \( n \).
+
+Then the number of binary strings of length \( n \) where the first occurrence of \( w \) occurs at the last \( l \) characters is given by the number of binary strings of length \( n \) which *do* contain \( w \) as a substring, minus the the number of binary strings of length \( n - 1 \) which contain \( w \) as a substring:
+
+\begin{align*}
+(2^n - \left[x^n\right]f_{\{w\}}(s)) - (2^{n - 1} - \left[x^{n - 1}\right]f_{\{w\}}(s))
+\end{align*}
+
+Thus:
+
+\begin{align*}
+p_n = \frac{(2^{n + l} - \left[x^{n + l}\right]f_{\{w\}}(s)) - (2^{n + l - 1} - \left[x^{n + l - 1}\right]f_{\{w\}}(s))}{2^{n + l - 1}}
+\end{align*}
+
+And (multiplying through by \( x \) to account for moving from \( 0 \) to \( 1 \) indexing):
+
+\begin{align*}
+G(x) &= 2x(1 - x)\frac{\frac{1}{1 - 2x} - f_{\{w\}}(x)}{2^lx^l}\left.\right\bigg\vert_{x=\frac{x}{2}}\\
+     &= x\left(1 - \frac{x}{2}\right)\frac{\frac{1}{1 - x} - f_{\{w\}}(\frac{x}{2})}{x^l}
+\end{align*}
 
 * Links
 
