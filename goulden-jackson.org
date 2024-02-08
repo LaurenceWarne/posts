@@ -42,7 +42,7 @@ x[w] \mapsto \left\{
     \end{array}\right.
 \end{equation}
 
-Will give us the generating function \( \sum a_n x^n \) where \( a_n \) is the number of words of length \( n \) not containing a given set of words as a substring.  We'll denote this generating function by \( G(x) \).
+Will give us the generating function \( \sum a_n x^n \) where \( a_n \) is the number of words of length \( n \) not containing a given set of words as a substring.  We'll denote this generating function by \( f_B(x) \).
 
 ** Computing \( \Phi_R \)
 
@@ -66,7 +66,7 @@ Then our generating function is the sum of \( \Phi_{R, w} \) for all words of le
 
 Which says in essence, if a word \( w' \) ends in \( w \), then it must either be \( w \) itself, else we can drop the last character of \( w' \) and we are left another word with a suffix of length \( R \).  And so calculating \( \Phi_R \) reduces to solving these equations.
 
-Note, making the substitution (1) prior to solving the system simplifies computing \( G(x) \).  We'll denote (1) applied to \( \Phi_{R, w} \) as \( \Phi_{R, w}(x) \).
+Note, making the substitution (1) prior to solving the system simplifies computing \( f_B(x) \).  We'll denote (1) applied to \( \Phi_{R, w} \) as \( \Phi_{R, w}(x) \).
 
 ** Example
 
@@ -94,7 +94,7 @@ Solving, we find that:
 And thus:
 
 \begin{align*}
-G(x) &= 1 + 2x + 4x^2 + \frac{4x^5 + 6x^4 + 7x^3}{1 - x^3 - x^2 - x}\\
+f_{\{111\}}(x) &= 1 + 2x + 4x^2 + \frac{4x^5 + 6x^4 + 7x^3}{1 - x^3 - x^2 - x}\\
      &= \frac{x^2 + x + 1}{1 - x^3 - x^2 - x}\\
 \end{align*}
 
@@ -131,56 +131,58 @@ We'll define \( C_B(w) \) as the set of all clusters on \( w \) (exercise: find 
 
 ** A Formula
 
-First of all, we'll define a the generating function \( f_B(s) \):
+First of all, we'll give an equivalent definition of \( f_B(x) \):
 
 \[
-f_B(s) = \sum_{w \in L(B)} s^{length(w)}
+f_B(x) = \sum_{w \in L_B} x^{length(w)}
 \]
 
-Where \( L(B) \) is the set of all words in \( V^* \), not containing any word in \( B \) as a substring.  Further define the auxiliary generating functions:
+Where \( L_B \) is the set of all words in \( V^* \), not containing any word in \( B \) as a substring.  We'll focus on calculating \( f_B(x) \) from here on, but other substitutions on \( \Phi_R \) act similarly (and covered in one of the examples).
+
+Further define the auxiliary generating functions:
 
 \begin{align*}
-F_B(s, t) &= \sum_{(w, S) = m \in M_B} s^{length(w)} t^{\left|S\right|}\\
-C_B(s, t) &= \sum_{(w, S) = c \in C_B} s^{length(w)} t^{\left|S\right|}
+F_B(x, t) &= \sum_{(w, S) = m \in M_B} x^{length(w)} t^{\left|S\right|}\\
+C_B(x, t) &= \sum_{(w, S) = c \in C_B} x^{length(w)} t^{\left|S\right|}
 \end{align*}
 
-And define \( Q(m = (w, S)) = s^{length(w)}t^{\left|S\right|} \) for brevity (it should be clear that \( Q(m_1m_2) = Q(m_1)Q(m_2) \)).  Next, we see that every marked word \( m = (w, S) \) either ends in a character not present in any bad word in \( S \), or otherwise the last character is part of the last bad word in \( S \) (which itself must be part of a cluster):
+And define \( Q(m = (w, S)) = x^{length(w)}t^{\left|S\right|} \) for brevity (it should be clear that \( Q(m_1m_2) = Q(m_1)Q(m_2) \)).  Next, we see that every marked word \( m = (w, S) \) either ends in a character not present in any bad word in \( S \), or otherwise the last character is part of the last bad word in \( S \) (which itself must be part of a cluster):
 
 \[
  M_B = \{ e \} \cup \{ mc : m \in M_B, \ c \in C_B \} \cup \{ mv : m \in M_B, \ v \in V \}\\
 \]
  \begin{align*}
-\Rightarrow F_B(s, t) &= 1 + \sum_{m \in M_B} \sum_{c \in C_B} Q(mc) + \sum_{m \in M_B} \sum_{v \in V} Q(mv)\\
+\Rightarrow F_B(x, t) &= 1 + \sum_{m \in M_B} \sum_{c \in C_B} Q(mc) + \sum_{m \in M_B} \sum_{v \in V} Q(mv)\\
                       &= 1 + \sum_{m \in M_B} \sum_{c \in C_B} Q(m)Q(c) + \sum_{m \in M_B} \sum_{v \in V} Q(m)Q(v)\\
-                      &= 1 + F_B(s, t)C_B(s, t) + \left|V\right|s \left(F_B(s, t)\right)\\
-                      &= \frac{1}{1 - \left|V\right|s - C_B(s, t)}
+                      &= 1 + F_B(x, t)C_B(x, t) + \left|V\right|x \left(F_B(x, t)\right)\\
+                      &= \frac{1}{1 - \left|V\right|x - C_B(x, t)}
  \end{align*}
 
  Where \( e \) is the (unique) empty marked word; note also the union is disjoint.  We also wave hands a bit for \( v \in V \), these always correspond to exactly one marked word given all elements of \( B \) have length greater than one.
 
- Thus, calculating \( F_B(s, b) \) reduces to calculating \( C_B(s, t) \).  We can group clusters according to their last entry \( b \).  For some cluster \( c = (w, S) \), the cluster must then either consist solely of \( b \) (which implies \( w = b \)), else we can remove \( b \) along with some suffix of \( w \) to produce a smaller cluster.
+ Thus, calculating \( F_B(x, b) \) reduces to calculating \( C_B(x, t) \).  We can group clusters according to their last entry \( b \).  For some cluster \( c = (w, S) \), the cluster must then either consist solely of \( b \) (which implies \( w = b \)), else we can remove \( b \) along with some suffix of \( w \) to produce a smaller cluster.
 
- For each \( b \in B \) let \( C_B[b] \) denote the set of clusters ending in \( b \), with \( C_B[b](s, t) \) defined similarly.  Then \( C_B[b](s, t) \) form a SLE, for example for \( B = \{HELE, ELEM\} \), we have:
+ For each \( b \in B \) let \( C_B[b] \) denote the set of clusters ending in \( b \), with \( C_B[b](x, t) \) defined similarly.  Then \( C_B[b](x, t) \) form a SLE, for example for \( B = \{HELE, ELEM\} \), we have:
 
 \begin{align*}
-C_B[ELEM](s, t) &= C_B[HELE](s, t)st + C_B[HELE](s, t)s^3t + s^4\\
-C_B[HELE](s, t) &= s^4t
+C_B[ELEM](x, t) &= C_B[HELE](x, t)xt + C_B[HELE](x, t)x^3t + x^4t\\
+C_B[HELE](x, t) &= x^4t
 \end{align*}
 
 Which results in:
 
 \begin{align*}
-C_B(s, t) &= s^4t + s^4t(st + s^3t + 1)\\
-F_B(s, t) &= \frac{1}{(1 - 26s) - (s^4t + s^4t(st + s^3t + 1))}
+C_B(x, t) &= x^4t + x^4t(xt + x^3t + 1)\\
+F_B(x, t) &= \frac{1}{(1 - 26x) - (x^4t + x^4t(xt + x^3t + 1))}
 \end{align*}
 
-Now, recovering \( f_B(s) \) from \( F_B(s, t) \) is equivalent to substituting \( t = -1 \) (exercise!), resulting in:
+Now, recovering \( f_B(x) \) from \( F_B(x, t) \) is equivalent to substituting \( t = -1 \) (exercise!), resulting in:
 
 \[
-f_B(s) = \frac{1}{1 - s^7 - s^5 - 2s^4 - 26s}
+f_B(x) = \frac{1}{1 - x^7 - x^5 - 2x^4 - 26x}
 \]
 
-Sage implementation:
+Sample Sage implementation:
 
 #+begin_src python
 import string
@@ -215,23 +217,57 @@ For some binary string \( w = w_1 \dots w_l \), let \( G(x) = \sum_{n = 1} p_n x
 Then the number of binary strings of length \( n \) where the first occurrence of \( w \) occurs at the last \( l \) characters is given by the number of binary strings of length \( n \) which *do* contain \( w \) as a substring, minus the the number of binary strings of length \( n - 1 \) which contain \( w \) as a substring:
 
 \begin{align*}
-(2^n - \left[x^n\right]f_{\{w\}}(s)) - (2^{n - 1} - \left[x^{n - 1}\right]f_{\{w\}}(s))
+(2^n - \left[x^n\right]f_{\{w\}}(x)) - (2^{n - 1} - \left[x^{n - 1}\right]f_{\{w\}}(x))
 \end{align*}
 
-Thus:
+Adjusting by \( l \) since we want the character where \( w \) starts:
 
 \begin{align*}
-p_n = \frac{(2^{n + l} - \left[x^{n + l}\right]f_{\{w\}}(s)) - (2^{n + l - 1} - \left[x^{n + l - 1}\right]f_{\{w\}}(s))}{2^{n + l - 1}}
+p_n = \frac{(2^{n + l} - \left[x^{n + l}\right]f_{\{w\}}(x)) - (2^{n + l - 1} - \left[x^{n + l - 1}\right]f_{\{w\}}(x))}{2^{n + l - 1}}
 \end{align*}
 
-And (multiplying through by \( x \) to account for moving from \( 0 \) to \( 1 \) indexing):
+Summing and multiplying through by \( x \) to account for moving from \( 0 \) to \( 1 \) indexing:
 
 \begin{align*}
-G(x) &= 2x(1 - x)\frac{\frac{1}{1 - 2x} - f_{\{w\}}(x)}{2^lx^l}\left.\right\bigg\vert_{x=\frac{x}{2}}\\
+G(x) &= 2x(1 - x)\frac{\frac{1}{1 - 2x} - f_{\{w\}}(x)}{2^lx^l}\bigg\rvert_{x=\frac{x}{2}}\\
      &= x\left(1 - \frac{x}{2}\right)\frac{\frac{1}{1 - x} - f_{\{w\}}(\frac{x}{2})}{x^l}
 \end{align*}
+
+** A Weighted Penney's Game
+
+Consider a game between two players which consists of tosses of an unfair coin (say heads = \( p \)).  Player 1 records a single win if the result is heads, and player 2 similarly for tails.  A player wins the game if they reach \( k \) consecutive wins.  What is the probability player 1 wins?  Our first goal will be to calculate the number of strings of length \( n \) containing a given string \( w_1 \), and /not/ containing a second string \( w_2 \).  This corresponds to a sequence of tosses containing \( k \) \( H \)s in a row, but not \( k \) \( T \)s.  Then we see how this allows us to calculate number of strings of length \( n \) containing a given string \( w_1 \) only as a suffix, and not containing a second string \( w_2 \), which will give us our result.
+
+Let \( S_n \) consist of the set of strings matching our criteria.  Then if \( V_n \) is the set of strings of length \( n \) not containing \( w_2 \), and \( U_n \) is the set of strings of length \( n \) not containing \( w_1 \) or \( w_2 \), what is \( W_n = V_n - U_n \)?
+
+We'll show by the classic subset argument \( W_n = S_n \).  Suppose \( w \) is a target string, e.g. it contains \( w_1 \) and not \( w_2 \).  Then \( w \in V_n \) since it doesn't contain \( w_2 \), and also \( w \not \in U_n \) since it contains \( w_1 \), which implies \( S_n \subseteq W_n \).  Similarly, if \( w \in V_n\) then \( w \) does not contain \( w_2 \), and \( w \not \in U_n \) implies \( w \) must contain \( w_1 \) since we now it doesn't conatin \( w_2 \); thus \( W_n \subseteq S_n \).
+
+Since \( U_n \subseteq V_n \) we must have:
+
+\[
+\left|S_n\right| = \left|V_n\right| - \left|U_n\right|
+\]
+
+For brevity let \( x_n = \left|X_n\right| \). Since \( v_n, u_n \) are just substring exclusion problems, we can use our methods to calculate \( s_n \).  But now how do we calculate the number of substrings of length \( n \) which don't dontain \( w_2 \), and contain \( w_1 \) only as a suffix?  Like in the previous example, we may be tempted to say "subtract \( 2s_{n - 1} \) from \( s_n \) to account for adding \( H \) or \( T \) to any \( w \in S_{n - 1} \)", but this is not correct since appending \( T \) to \( w \in S_{n - 1} \) may result in a string ending in \( k\  T\)s.
+
+Let \( S(x, y) = \sum_{n, m} s_{n, m} x^ny^m \) where \( s_{n, m} \) is the number of strings with \( n \) \( H \)s and \( m \) \( T \)s containing a given string \( w_1 \), and /not/ containing a second string \( w_2 \) (we know this one).  Further let \( T(x, y) = \sum_{n, m} t_{n, m} x^ny^m \) where \( t_{n,m} \) is as like \( s_{n, m} \), but with added condition that the string ends in \( T \); and let Further let \( K(x, y) = \sum_{n, m} k_{n, m} x^ny^m \) where \( k_{n,m} \) is as like \( s_{n, m} \), but with added condition that the string ends in \( k - 1 \) lots of \( T \)s.  Then the following holds:
+
+\begin{align*}
+T(x, y) &= yS(x, y) - yK(x, y)\\
+K(x, y) &= y^4S(x, y) - y^4T(x, y)\\
+P(x, y) &= (1 - x - y)S(x, y) + K(x, y)
+\end{align*}
+
+Where \( P(x, y) \) is the generating function we want, which results in the following:
+
+\[
+P(x, y) = \left(1 - x - y + y \frac{y^{k - 1} - y^k}{1 - y^k}\right)S(x, y)
+\]
+
+Now the probability of player 1 winning is just \( P(p, (1 - p)) \).
 
 * Links
 
 - https://uwaterloo.ca/math/sites/default/files/uploads/documents/gjjlms1979.pdf (original paper)
+- https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimPDF/gj.pdf
 - https://arxiv.org/pdf/1508.02793.pdf
+- https://en.wikipedia.org/wiki/Penney%27s_game
