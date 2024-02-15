@@ -6,7 +6,7 @@
 #+AUTHOR: Laurence Warne
 #+DATE: 2024-02-10 Sat 10:00
 
-/A lot of this post was inspired by the papers of [[https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimPDF/gj.pdf][John Noonan & Doron Zeilberger]] and [[https://arxiv.org/pdf/1508.02793.pdf][Zhuang]] (you can also checko out the [[https://uwaterloo.ca/math/sites/default/files/uploads/documents/gjjlms1979.pdf][original paper]], but it's a bit harder to follow)/.
+/A lot of this post was inspired by the papers of [[https://sites.math.rutgers.edu/~zeilberg/mamarim/mamarimPDF/gj.pdf][John Noonan & Doron Zeilberger]] and [[https://arxiv.org/pdf/1508.02793.pdf][Zhuang]] (you can also checkoout the [[https://uwaterloo.ca/math/sites/default/files/uploads/documents/gjjlms1979.pdf][original paper]], but it's a bit harder to follow)/.
 
 * Intro
 
@@ -116,7 +116,7 @@ Given \( w \) and a set of words \( B \), we define a *marked word* as a pair \(
 (HELLO, \{ (HE, 1), (EL, 2), (LO, 4) \})
 \]
 
-And we define a *cluster* as a marked word which cannot be decomposed into the concatenation (defined how you would expect) of two nonempty marked words:
+And we define a *cluster* as a nonempty marked word for which every letter in \( w \) belongs to at least one bad word, and neighbouring bad words appearing in \( w \) always overlap:
 
 \[
 (HEL, \{ (HE, 1), (EL, 2) \})
@@ -128,7 +128,7 @@ Note, every subword of \( B \) in \( w \) needn't be included in the marked word
 (HELLO, \{ (HE, 1) \})
 \]
 
-Is a completely valid marked word.  Also noteworthy is the fact that for every cluster \( c = c_1 \dots c_n \), every \( c_i \) is part of some bad word.
+Is a completely valid marked word.
 
 Given \( B \), we'll define \( C_B(w) \) as the set of all clusters on \( w \) (exercise: find \( w, B \) such that this set has size greater than one), \( M_B \) as the set of all marked words, and \( C_B \) as the set of all clusters.
 
@@ -269,6 +269,10 @@ P(x, y) = \left(1 - x - y + y \frac{y^{k - 1} - y^k}{1 - y^k}\right)S(x, y)
 \]
 
 Now the probability of player 1 winning is just \( P(p, (1 - p)) \).
+
+* Questions
+1. Is the following an equivalent definition of a cluster: "Define \( (w, S) \) as a cluster if it cannot be decomposed as the concatenation (defined how you would expect) of two nonempty marked words"?
+2. How may we find the generating function of the number of words of length \( n \) in which every letter must be contained in a bad word?
 
 * Links
 
