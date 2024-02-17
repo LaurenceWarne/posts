@@ -238,7 +238,7 @@ G(x) &= 2x(1 - x)\frac{\frac{1}{1 - 2x} - f_{\{w\}}(x)}{2^lx^l}\bigg\rvert_{x=\f
 
 ** A Weighted Penney's Game
 
-Consider a game between two players which consists of tosses of an unfair coin (say heads = \( p \)).  Player 1 records a single win if the result is heads, and player 2 similarly for tails.  A player wins the game if they reach \( k \) consecutive wins.  What is the probability player 1 wins?
+Consider a game between two players which consists of a set of rounds consisting of tosses of an unfair coin (say heads = \( p \)).  Player 1 wins the round if the result is heads, and player 2 similarly for tails.  A player wins the game if they reach \( k \) consecutive round wins.  What is the probability player 1 wins?  Markov chains may be a bit cleaner for this example, but we'll show how GJ can be applied anyway!
 
 We will first calculate the number of strings of length \( n \) containing a given string \( w_1 \), and /not/ containing a second string \( w_2 \) (denote this criteria \( C_1 \)).  This corresponds to a sequence of tosses containing \( k \) \( H \)s in a row, but not \( k \) \( T \)s.  Then we see how this allows us to calculate number of strings of length \( n \) containing a given string \( w_1 \) only as a suffix, and not containing a second string \( w_2 \) (\( C_2 \)), which will give us our result.
 
@@ -271,7 +271,7 @@ P(x, y) = \left(1 - x - y + y \frac{y^{k - 1} - y^k}{1 - y^k}\right)S(x, y)
 Now the probability of player 1 winning is just \( P(p, (1 - p)) \).
 
 * Questions
-1. Is the following an equivalent definition of a cluster: "Define \( (w, S) \) as a cluster if it cannot be decomposed as the concatenation (defined how you would expect) of two nonempty marked words"?
+1. Is the following equivalent to our definition of a cluster: "Define \( (w, S) \) as a cluster if it cannot be decomposed as the concatenation (defined how you would expect) of two nonempty marked words"?
 2. How may we find the generating function of the number of words of length \( n \) in which every letter must be contained in a bad word?
 
 * Links
