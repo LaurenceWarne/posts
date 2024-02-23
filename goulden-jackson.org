@@ -67,7 +67,7 @@ Then \( \Phi_R \) is the sum of \( \Phi_{R, w} \) for all words of length \( R \
  \Phi_{R, w_1 \dots w_R} = W_R(w) + \left(\prod_{i \ge 1} x\left[w_i \dots w_r \right] \right) \sum_{c \in V} \Phi_{R, cw_1 \dots w_{R - 1}}
 \]
 
-EAch equation says in essence, if a word \( w' \) ends in \( w \), then it must either be \( w \) itself, else we can drop the last character of \( w' \) and we are left another word with a suffix of length \( R \).  And so calculating \( \Phi_R \) reduces to solving these equations.  We can also glean from this that \( \Phi_R \) is rational in its variables which implies as we stated in our introduction, \( f_B(x) \) is the GF of a linear recurrence.
+Each equation says in essence, if a word \( w' \) ends in \( w \), then it must either be \( w \) itself, else we can drop the last character of \( w' \) and we are left another word with a suffix of length \( R \).  And so calculating \( \Phi_R \) reduces to solving these equations.  We can also glean from this that \( \Phi_R \) is rational in its variables which implies as we stated in our introduction, \( f_B(x) \) is the GF of a linear recurrence.
 
 Note, making the substitution (1) prior to solving the system simplifies computing \( f_B(x) \).  We'll denote (1) applied to \( \Phi_{R, w} \) as \( \Phi_{R, w}(x) \).
 
@@ -131,6 +131,8 @@ Note, every subword of \( B \) in \( w \) needn't be included in the marked word
 Is a completely valid marked word.
 
 Given \( B \), we'll define \( C_B(w) \) as the set of all clusters on \( w \) (exercise: find \( w, B \) such that this set has size greater than one), \( M_B \) as the set of all marked words, and \( C_B \) as the set of all clusters.
+
+The concatenation of two marked words \( m_1, \ m_2 \) will be denoted \( m_1m_2 \), and defined how you would expect.
 
 ** A Formula
 
@@ -209,7 +211,7 @@ def goulden_jackson(bad_words, alphabet=string.ascii_uppercase):
     return G.numerator() / G.denominator()
 #+end_src
 
-Our overlap checking is not optimised, we could do better with a suffix tree when ~bad_words~ is large.
+Our overlap checking is not optimised, we could do better with a suffix tree when ~bad_words~ is large.  We could also further exploit symmetry, e.g. we must always have \( C_B[abb](x, t) = C_B[cbb](x, t) \).
 
 * Examples
 
